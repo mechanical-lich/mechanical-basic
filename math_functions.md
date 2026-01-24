@@ -1,0 +1,11 @@
+## Built in Math functions
+- `ABS`: Absolute value
+- `ATN`: Arctangent (result in radians)
+- `COS`: Cosine (argument in radians)
+- `EXP`: Exponential function
+- `INT`: Integer part (typically floor function)
+- `LOG`: Natural logarithm
+- `RND`: Random number generation
+- `SIN`: Sine (argument in radians)
+- `SQR`: Square root
+- `TAN`: Tangent (argument in radians)

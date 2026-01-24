@@ -6,6 +6,7 @@ import (
 	"math"
 
 	"github.com/mechanical-lich/mechanical-basic/pkg/basic"
+	"github.com/mechanical-lich/mechanical-basic/pkg/functions"
 )
 
 func main() {
@@ -24,7 +25,7 @@ func main() {
 			return nil, errors.New("incorrect arguements")
 		}
 
-		newX, err := basic.EnsureInt(args[0])
+		newX, err := functions.EnsureInt(args[0])
 		if err != nil {
 			return nil, err
 		}
@@ -40,13 +41,13 @@ func main() {
 
 		// Check if input is float or int
 
-		a, err := basic.EnsureFloat(args[0])
+		a, err := functions.EnsureFloat(args[0])
 		if err != nil {
 			fmt.Println("Error converting first argument:", err)
 			return nil, err
 		}
 
-		b, err := basic.EnsureFloat(args[1])
+		b, err := functions.EnsureFloat(args[1])
 		if err != nil {
 			fmt.Println("Error converting second argument:", err)
 			return nil, err
