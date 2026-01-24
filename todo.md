@@ -5,5 +5,4 @@
     - String: LEN
     - Random: RND
 - Array support
-- Add support for configuring where the output for `print` goes. (Set a log function may be the easiest route)
 - Outside in functional calling.  IE Go code calls a specific function in the script like `update()` or `handleHit()`

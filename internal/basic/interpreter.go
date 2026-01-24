@@ -23,6 +23,9 @@ type Interpreter struct {
 	// User-defined functions from the script
 	userFuncs map[string]*FunctionStatement
 
+	// Global scope for top-level variables (persists between calls)
+	globalScope map[string]interface{}
+
 	// Variable scopes (stack for function calls)
 	scopes []map[string]interface{}
 
@@ -45,6 +48,7 @@ func NewInterpreter() *Interpreter {
 	return &Interpreter{
 		externalFuncs: make(map[string]ExternalFunc),
 		userFuncs:     make(map[string]*FunctionStatement),
+		globalScope:   make(map[string]interface{}),
 		scopes:        []map[string]interface{}{make(map[string]interface{})},
 		astCache:      make(map[string]*Program),
 		maxIterations: MaxIterations,
@@ -77,26 +81,49 @@ func (i *Interpreter) Interpret(code string) error {
 	return i.executeProgram(prog)
 }
 
-// Load parses the code and registers function definitions without executing top-level code
+// Load parses the code, registers function definitions, and executes top-level code.
+// Top-level variables are stored in global scope and persist between function calls.
 func (i *Interpreter) Load(code string) error {
 	prog, err := i.getOrParseProgram(code)
 	if err != nil {
 		return err
 	}
 
-	// Reset user functions and collect from this program
+	// Reset state for new script
 	i.userFuncs = make(map[string]*FunctionStatement)
+	i.globalScope = make(map[string]interface{})
+
+	// Collect top-level statements and function definitions
+	var topLevelStatements []Statement
 	for _, stmt := range prog.Statements {
 		if fn, ok := stmt.(*FunctionStatement); ok {
 			i.userFuncs[strings.ToLower(fn.Name)] = fn
+		} else {
+			topLevelStatements = append(topLevelStatements, stmt)
+		}
+	}
+
+	// Execute top-level code now, storing variables in global scope
+	if len(topLevelStatements) > 0 {
+		i.iterationCount = 0
+		i.breakFlag = false
+		i.returnFlag = false
+		i.returnValue = nil
+		i.scopes = []map[string]interface{}{i.globalScope}
+
+		for _, stmt := range topLevelStatements {
+			if err := i.executeStatement(stmt); err != nil {
+				return fmt.Errorf("error in top-level code: %w", err)
+			}
 		}
 	}
 
 	return nil
 }
 
-// Call invokes a script-defined function by name with the provided arguments
-// Each call starts with a fresh scope - variables do not persist between calls
+// Call invokes a script-defined function by name with the provided arguments.
+// Global variables from top-level code persist between calls.
+// Function-local variables do not persist between calls.
 func (i *Interpreter) Call(funcName string, args ...interface{}) (interface{}, error) {
 	name := strings.ToLower(funcName)
 
@@ -115,10 +142,10 @@ func (i *Interpreter) Call(funcName string, args ...interface{}) (interface{}, e
 	i.returnFlag = false
 	i.returnValue = nil
 
-	// Start with fresh scope (no variable persistence)
-	i.scopes = []map[string]interface{}{make(map[string]interface{})}
+	// Start with global scope + fresh local scope for function
+	i.scopes = []map[string]interface{}{i.globalScope, make(map[string]interface{})}
 
-	// Bind parameters to the scope
+	// Bind parameters to the local scope (top of stack)
 	for idx, param := range fn.Params {
 		i.currentScope()[strings.ToLower(param)] = args[idx]
 	}

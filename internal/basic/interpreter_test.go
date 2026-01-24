@@ -637,11 +637,11 @@ endfunction
 	}
 }
 
-func TestLoadDoesNotExecuteTopLevel(t *testing.T) {
+func TestLoadExecutesTopLevel(t *testing.T) {
 	interp, output := newTestInterpreter()
 
 	code := `
-print "This should not print"
+print "Top-level executed"
 
 function test():
     print "Function called"
@@ -652,9 +652,9 @@ endfunction
 		t.Fatalf("Load error: %v", err)
 	}
 
-	// Load should not have executed print
-	if len(*output) != 0 {
-		t.Errorf("Load executed top-level code, output: %v", *output)
+	// Load should have executed top-level print
+	if len(*output) != 1 || (*output)[0] != "Top-level executed" {
+		t.Errorf("Load did not execute top-level code, output: %v", *output)
 	}
 
 	// Now call the function
@@ -662,7 +662,7 @@ endfunction
 	if err != nil {
 		t.Fatalf("Call error: %v", err)
 	}
-	if len(*output) != 1 || (*output)[0] != "Function called" {
+	if len(*output) != 2 || (*output)[1] != "Function called" {
 		t.Errorf("expected 'Function called', got %v", *output)
 	}
 }
@@ -702,6 +702,54 @@ endfunction
 	}
 	if !strings.Contains(err.Error(), "undefined variable") {
 		t.Errorf("expected 'undefined variable' error, got: %v", err)
+	}
+}
+
+func TestTopLevelVariablesPersist(t *testing.T) {
+	interp := NewInterpreter()
+
+	code := `
+counter = 0
+
+function increment():
+    counter = counter + 1
+    return counter
+endfunction
+
+function getCounter():
+    return counter
+endfunction
+`
+	err := interp.Load(code)
+	if err != nil {
+		t.Fatalf("Load error: %v", err)
+	}
+
+	// First increment
+	result, err := interp.Call("increment")
+	if err != nil {
+		t.Fatalf("Call increment error: %v", err)
+	}
+	if result != 1 {
+		t.Errorf("expected 1, got %v (type %T)", result, result)
+	}
+
+	// Second increment - should see updated counter
+	result, err = interp.Call("increment")
+	if err != nil {
+		t.Fatalf("Call increment error: %v", err)
+	}
+	if result != 2 {
+		t.Errorf("expected 2, got %v (type %T)", result, result)
+	}
+
+	// Get counter should return 2
+	result, err = interp.Call("getCounter")
+	if err != nil {
+		t.Fatalf("Call getCounter error: %v", err)
+	}
+	if result != 2 {
+		t.Errorf("expected 2, got %v (type %T)", result, result)
 	}
 }
 

@@ -31,3 +31,12 @@ func EnsureInt(input interface{}) (int, error) {
 	}
 	return out, nil
 }
+
+func EnsureString(input interface{}) (string, error) {
+	switch v := input.(type) {
+	case string:
+		return v, nil
+	default:
+		return "", errors.New("invalid argument type: expected string")
+	}
+}
