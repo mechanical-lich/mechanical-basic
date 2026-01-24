@@ -28,6 +28,22 @@ func (mb *MechBasic) Run(code string) error {
 	return mb.interpreter.Interpret(code)
 }
 
+// Load parses the script and registers function definitions without executing top-level code
+func (mb *MechBasic) Load(code string) error {
+	return mb.interpreter.Load(code)
+}
+
+// Call invokes a script-defined function by name with the provided arguments
+// Each call starts with a fresh scope - variables do not persist between calls
+func (mb *MechBasic) Call(funcName string, args ...any) (any, error) {
+	return mb.interpreter.Call(funcName, args...)
+}
+
+// HasFunction checks if a function with the given name exists in the loaded script
+func (mb *MechBasic) HasFunction(funcName string) bool {
+	return mb.interpreter.HasFunction(funcName)
+}
+
 func (mb *MechBasic) RegisterMathLibrary() {
 	mb.interpreter.RegisterFunction("pow", mathlib.Pow)
 	mb.interpreter.RegisterFunction("abs", mathlib.Abs)

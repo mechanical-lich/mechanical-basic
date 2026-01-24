@@ -158,7 +158,7 @@ func (s *ExpressionStatement) statement() {}
 // IntLiteral represents an integer literal: 42
 type IntLiteral struct {
 	Pos
-	Value int64
+	Value int
 }
 
 func (e *IntLiteral) node()       {}

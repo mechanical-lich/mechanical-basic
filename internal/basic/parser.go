@@ -574,7 +574,7 @@ func (p *Parser) parsePrimary() (Expression, error) {
 
 	switch p.current.Type {
 	case TOKEN_INT:
-		value, err := strconv.ParseInt(p.current.Value, 10, 64)
+		value, err := strconv.Atoi(p.current.Value)
 		if err != nil {
 			return nil, p.error("invalid integer: %s", p.current.Value)
 		}

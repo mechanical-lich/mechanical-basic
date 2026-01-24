@@ -459,7 +459,7 @@ func TestParseLiterals(t *testing.T) {
 		code     string
 		expected interface{}
 	}{
-		{"let x = 42", int64(42)},
+		{"let x = 42", 42},
 		{"let x = 3.14", 3.14},
 		{`let x = "hello"`, "hello"},
 		{"let x = true", true},
@@ -471,7 +471,7 @@ func TestParseLiterals(t *testing.T) {
 		let := prog.Statements[0].(*LetStatement)
 
 		switch expected := tt.expected.(type) {
-		case int64:
+		case int:
 			lit := let.Value.(*IntLiteral)
 			if lit.Value != expected {
 				t.Errorf("%s: expected %d, got %d", tt.code, expected, lit.Value)

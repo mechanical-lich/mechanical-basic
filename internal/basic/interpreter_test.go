@@ -24,7 +24,7 @@ print x
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if len(*output) != 1 || (*output)[0] != int64(5) {
+	if len(*output) != 1 || (*output)[0] != (5) {
 		t.Errorf("expected [5], got %v", *output)
 	}
 }
@@ -34,13 +34,13 @@ func TestInterpretArithmetic(t *testing.T) {
 		code     string
 		expected interface{}
 	}{
-		{"let x = 2 + 3\nprint x", int64(5)},
-		{"let x = 10 - 4\nprint x", int64(6)},
-		{"let x = 3 * 4\nprint x", int64(12)},
-		{"let x = 15 / 3\nprint x", int64(5)},
-		{"let x = 2 + 3 * 4\nprint x", int64(14)},        // Precedence
-		{"let x = (2 + 3) * 4\nprint x", int64(20)},      // Parentheses
-		{"let x = 10 / 3\nprint x", int64(3)},            // Integer division
+		{"let x = 2 + 3\nprint x", (5)},
+		{"let x = 10 - 4\nprint x", (6)},
+		{"let x = 3 * 4\nprint x", (12)},
+		{"let x = 15 / 3\nprint x", (5)},
+		{"let x = 2 + 3 * 4\nprint x", (14)},             // Precedence
+		{"let x = (2 + 3) * 4\nprint x", (20)},           // Parentheses
+		{"let x = 10 / 3\nprint x", (3)},                 // Integer division
 		{"let x = 10.0 / 3\nprint x", float64(10.0 / 3)}, // Float division
 	}
 
@@ -95,7 +95,7 @@ print x
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if (*output)[0] != int64(10) {
+	if (*output)[0] != (10) {
 		t.Errorf("expected 10, got %v", (*output)[0])
 	}
 }
@@ -112,10 +112,10 @@ print x
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if (*output)[0] != int64(15) {
+	if (*output)[0] != (15) {
 		t.Errorf("expected 15, got %v", (*output)[0])
 	}
-	if (*output)[1] != int64(12) {
+	if (*output)[1] != (12) {
 		t.Errorf("expected 12, got %v", (*output)[1])
 	}
 }
@@ -133,10 +133,10 @@ print x
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if (*output)[0] != int64(11) {
+	if (*output)[0] != (11) {
 		t.Errorf("expected 11, got %v", (*output)[0])
 	}
-	if (*output)[1] != int64(9) {
+	if (*output)[1] != (9) {
 		t.Errorf("expected 9, got %v", (*output)[1])
 	}
 }
@@ -152,7 +152,7 @@ print y
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if (*output)[0] != int64(-5) {
+	if (*output)[0] != (-5) {
 		t.Errorf("expected -5, got %v", (*output)[0])
 	}
 	if (*output)[1] != float64(-3.14) {
@@ -281,7 +281,7 @@ print sum
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if (*output)[0] != int64(15) {
+	if (*output)[0] != (15) {
 		t.Errorf("expected 15, got %v", (*output)[0])
 	}
 }
@@ -350,7 +350,7 @@ print result
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if (*output)[0] != int64(7) {
+	if (*output)[0] != (7) {
 		t.Errorf("expected 7, got %v", (*output)[0])
 	}
 }
@@ -368,7 +368,7 @@ print square(5)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if (*output)[0] != int64(25) {
+	if (*output)[0] != (25) {
 		t.Errorf("expected 25, got %v", (*output)[0])
 	}
 }
@@ -388,7 +388,7 @@ print factorial(5)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if (*output)[0] != int64(120) {
+	if (*output)[0] != (120) {
 		t.Errorf("expected 120, got %v", (*output)[0])
 	}
 }
@@ -398,7 +398,7 @@ func TestInterpretExternalFunction(t *testing.T) {
 
 	// Register external function
 	interp.RegisterFunction("getX", func(args ...interface{}) (interface{}, error) {
-		return int64(42), nil
+		return (42), nil
 	})
 
 	err := interp.Interpret(`
@@ -408,7 +408,7 @@ print x
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if (*output)[0] != int64(42) {
+	if (*output)[0] != (42) {
 		t.Errorf("expected 42, got %v", (*output)[0])
 	}
 }
@@ -420,13 +420,13 @@ func TestInterpretExternalFunctionWithArgs(t *testing.T) {
 		if len(args) != 2 {
 			return nil, fmt.Errorf("pow requires 2 arguments")
 		}
-		base, ok1 := args[0].(int64)
-		exp, ok2 := args[1].(int64)
+		base, ok1 := args[0].(int)
+		exp, ok2 := args[1].(int)
 		if !ok1 || !ok2 {
 			return nil, fmt.Errorf("pow requires integer arguments")
 		}
-		result := int64(1)
-		for i := int64(0); i < exp; i++ {
+		result := (1)
+		for i := (0); i < exp; i++ {
 			result *= base
 		}
 		return result, nil
@@ -439,7 +439,7 @@ print x
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if (*output)[0] != int64(256) {
+	if (*output)[0] != (256) {
 		t.Errorf("expected 256, got %v", (*output)[0])
 	}
 }
@@ -552,7 +552,7 @@ print x
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if (*output)[0] != int64(5) {
+	if (*output)[0] != (5) {
 		t.Errorf("expected 5, got %v", (*output)[0])
 	}
 }
@@ -561,14 +561,14 @@ func TestInterpretCaseInsensitiveFunctions(t *testing.T) {
 	interp, output := newTestInterpreter()
 
 	interp.RegisterFunction("GetValue", func(args ...interface{}) (interface{}, error) {
-		return int64(99), nil
+		return (99), nil
 	})
 
 	err := interp.Interpret(`print getvalue()`)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if (*output)[0] != int64(99) {
+	if (*output)[0] != (99) {
 		t.Errorf("expected 99, got %v", (*output)[0])
 	}
 }
@@ -586,7 +586,7 @@ next i
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	expected := []int64{11, 12, 21, 22, 31, 32}
+	expected := []int{11, 12, 21, 22, 31, 32}
 	if len(*output) != len(expected) {
 		t.Fatalf("expected %d outputs, got %d", len(expected), len(*output))
 	}
@@ -594,5 +594,222 @@ next i
 		if (*output)[i] != exp {
 			t.Errorf("output[%d]: expected %d, got %v", i, exp, (*output)[i])
 		}
+	}
+}
+
+// -----------------------------------------------------------------------------
+// Load/Call Tests
+// -----------------------------------------------------------------------------
+
+func TestLoadAndCall(t *testing.T) {
+	interp, output := newTestInterpreter()
+
+	code := `
+function greet(name):
+    print "Hello, " + name
+endfunction
+
+function add(a, b):
+    return a + b
+endfunction
+`
+	err := interp.Load(code)
+	if err != nil {
+		t.Fatalf("Load error: %v", err)
+	}
+
+	// Call greet
+	_, err = interp.Call("greet", "World")
+	if err != nil {
+		t.Fatalf("Call greet error: %v", err)
+	}
+	if len(*output) != 1 || (*output)[0] != "Hello, World" {
+		t.Errorf("expected 'Hello, World', got %v", *output)
+	}
+
+	// Call add
+	result, err := interp.Call("add", (3), (4))
+	if err != nil {
+		t.Fatalf("Call add error: %v", err)
+	}
+	if result != (7) {
+		t.Errorf("expected 7, got %v", result)
+	}
+}
+
+func TestLoadDoesNotExecuteTopLevel(t *testing.T) {
+	interp, output := newTestInterpreter()
+
+	code := `
+print "This should not print"
+
+function test():
+    print "Function called"
+endfunction
+`
+	err := interp.Load(code)
+	if err != nil {
+		t.Fatalf("Load error: %v", err)
+	}
+
+	// Load should not have executed print
+	if len(*output) != 0 {
+		t.Errorf("Load executed top-level code, output: %v", *output)
+	}
+
+	// Now call the function
+	_, err = interp.Call("test")
+	if err != nil {
+		t.Fatalf("Call error: %v", err)
+	}
+	if len(*output) != 1 || (*output)[0] != "Function called" {
+		t.Errorf("expected 'Function called', got %v", *output)
+	}
+}
+
+func TestCallVariablesDoNotPersist(t *testing.T) {
+	interp, _ := newTestInterpreter()
+
+	code := `
+function setAndGet():
+    let x = 42
+    print x
+    return x
+endfunction
+
+function tryGetX():
+    print x
+endfunction
+`
+	err := interp.Load(code)
+	if err != nil {
+		t.Fatalf("Load error: %v", err)
+	}
+
+	// First call sets x
+	result, err := interp.Call("setAndGet")
+	if err != nil {
+		t.Fatalf("Call setAndGet error: %v", err)
+	}
+	if result != (42) {
+		t.Errorf("expected 42, got %v", result)
+	}
+
+	// Second call should NOT see x (fresh scope)
+	_, err = interp.Call("tryGetX")
+	if err == nil {
+		t.Error("expected error for undefined variable x")
+	}
+	if !strings.Contains(err.Error(), "undefined variable") {
+		t.Errorf("expected 'undefined variable' error, got: %v", err)
+	}
+}
+
+func TestCallUndefinedFunction(t *testing.T) {
+	interp := NewInterpreter()
+
+	err := interp.Load(`
+function exists():
+    return 1
+endfunction
+`)
+	if err != nil {
+		t.Fatalf("Load error: %v", err)
+	}
+
+	_, err = interp.Call("doesNotExist")
+	if err == nil {
+		t.Error("expected error for undefined function")
+	}
+}
+
+func TestCallWrongArgumentCount(t *testing.T) {
+	interp := NewInterpreter()
+
+	err := interp.Load(`
+function add(a, b):
+    return a + b
+endfunction
+`)
+	if err != nil {
+		t.Fatalf("Load error: %v", err)
+	}
+
+	_, err = interp.Call("add", (1)) // Missing second arg
+	if err == nil {
+		t.Error("expected error for wrong argument count")
+	}
+}
+
+func TestHasFunction(t *testing.T) {
+	interp := NewInterpreter()
+
+	err := interp.Load(`
+function init():
+    return 1
+endfunction
+
+function update():
+    return 2
+endfunction
+`)
+	if err != nil {
+		t.Fatalf("Load error: %v", err)
+	}
+
+	if !interp.HasFunction("init") {
+		t.Error("expected HasFunction('init') to be true")
+	}
+	if !interp.HasFunction("update") {
+		t.Error("expected HasFunction('update') to be true")
+	}
+	if interp.HasFunction("destroy") {
+		t.Error("expected HasFunction('destroy') to be false")
+	}
+}
+
+func TestCallWithExternalFunctions(t *testing.T) {
+	interp := NewInterpreter()
+
+	var velocityX, velocityY float64
+	interp.RegisterFunction("setVelocity", func(args ...interface{}) (interface{}, error) {
+		if len(args) != 2 {
+			return nil, fmt.Errorf("setVelocity requires 2 arguments")
+		}
+		velocityX = toFloat(args[0])
+		velocityY = toFloat(args[1])
+		return nil, nil
+	})
+
+	err := interp.Load(`
+function hit(forceX, forceY):
+    setVelocity(forceX, forceY)
+endfunction
+`)
+	if err != nil {
+		t.Fatalf("Load error: %v", err)
+	}
+
+	_, err = interp.Call("hit", 5.0, -3.0)
+	if err != nil {
+		t.Fatalf("Call error: %v", err)
+	}
+
+	if velocityX != 5.0 {
+		t.Errorf("expected velocityX 5.0, got %v", velocityX)
+	}
+	if velocityY != -3.0 {
+		t.Errorf("expected velocityY -3.0, got %v", velocityY)
+	}
+}
+
+func toFloat(v interface{}) float64 {
+	switch val := v.(type) {
+	case float64:
+		return val
+	case int:
+		return float64(val)
+	default:
+		return 0
 	}
 }

@@ -77,6 +77,66 @@ func (i *Interpreter) Interpret(code string) error {
 	return i.executeProgram(prog)
 }
 
+// Load parses the code and registers function definitions without executing top-level code
+func (i *Interpreter) Load(code string) error {
+	prog, err := i.getOrParseProgram(code)
+	if err != nil {
+		return err
+	}
+
+	// Reset user functions and collect from this program
+	i.userFuncs = make(map[string]*FunctionStatement)
+	for _, stmt := range prog.Statements {
+		if fn, ok := stmt.(*FunctionStatement); ok {
+			i.userFuncs[strings.ToLower(fn.Name)] = fn
+		}
+	}
+
+	return nil
+}
+
+// Call invokes a script-defined function by name with the provided arguments
+// Each call starts with a fresh scope - variables do not persist between calls
+func (i *Interpreter) Call(funcName string, args ...interface{}) (interface{}, error) {
+	name := strings.ToLower(funcName)
+
+	fn, ok := i.userFuncs[name]
+	if !ok {
+		return nil, fmt.Errorf("undefined function: %s", funcName)
+	}
+
+	if len(args) != len(fn.Params) {
+		return nil, fmt.Errorf("function %s expects %d arguments, got %d", funcName, len(fn.Params), len(args))
+	}
+
+	// Reset execution state for this call
+	i.iterationCount = 0
+	i.breakFlag = false
+	i.returnFlag = false
+	i.returnValue = nil
+
+	// Start with fresh scope (no variable persistence)
+	i.scopes = []map[string]interface{}{make(map[string]interface{})}
+
+	// Bind parameters to the scope
+	for idx, param := range fn.Params {
+		i.currentScope()[strings.ToLower(param)] = args[idx]
+	}
+
+	// Execute function body
+	if err := i.executeBlock(fn.Body); err != nil {
+		return nil, err
+	}
+
+	return i.returnValue, nil
+}
+
+// HasFunction checks if a function with the given name exists
+func (i *Interpreter) HasFunction(funcName string) bool {
+	_, ok := i.userFuncs[strings.ToLower(funcName)]
+	return ok
+}
+
 // Validate checks the given code for syntax errors without executing it
 func (i *Interpreter) Validate(code string) error {
 	_, err := i.getOrParseProgram(code)
@@ -196,7 +256,7 @@ func (i *Interpreter) executeAssignStatement(stmt *AssignStatement) error {
 		if err != nil {
 			return err
 		}
-		newVal, err := i.addValues(val, int64(1))
+		newVal, err := i.addValues(val, 1)
 		if err != nil {
 			return i.runtimeError(stmt, "cannot increment %T", val)
 		}
@@ -207,7 +267,7 @@ func (i *Interpreter) executeAssignStatement(stmt *AssignStatement) error {
 		if err != nil {
 			return err
 		}
-		newVal, err := i.subtractValues(val, int64(1))
+		newVal, err := i.subtractValues(val, 1)
 		if err != nil {
 			return i.runtimeError(stmt, "cannot decrement %T", val)
 		}
@@ -297,12 +357,12 @@ func (i *Interpreter) executeForStatement(stmt *ForStatement) error {
 		return err
 	}
 
-	startInt, ok := i.toInt64(start)
+	startInt, ok := i.toInt(start)
 	if !ok {
 		return i.runtimeError(stmt, "FOR start value must be numeric")
 	}
 
-	endInt, ok := i.toInt64(end)
+	endInt, ok := i.toInt(end)
 	if !ok {
 		return i.runtimeError(stmt, "FOR end value must be numeric")
 	}
@@ -455,7 +515,7 @@ func (i *Interpreter) evaluateUnaryExpr(expr *UnaryExpr) (interface{}, error) {
 	switch expr.Operator {
 	case TOKEN_MINUS:
 		switch v := operand.(type) {
-		case int64:
+		case int:
 			return -v, nil
 		case float64:
 			return -v, nil
@@ -552,8 +612,8 @@ func (i *Interpreter) addValues(left, right interface{}) (interface{}, error) {
 	}
 
 	// If both are ints, return int
-	if li, ok := left.(int64); ok {
-		if ri, ok := right.(int64); ok {
+	if li, ok := left.(int); ok {
+		if ri, ok := right.(int); ok {
 			return li + ri, nil
 		}
 	}
@@ -568,8 +628,8 @@ func (i *Interpreter) subtractValues(left, right interface{}) (interface{}, erro
 		return nil, fmt.Errorf("cannot subtract %T from %T", right, left)
 	}
 
-	if li, ok := left.(int64); ok {
-		if ri, ok := right.(int64); ok {
+	if li, ok := left.(int); ok {
+		if ri, ok := right.(int); ok {
 			return li - ri, nil
 		}
 	}
@@ -584,8 +644,8 @@ func (i *Interpreter) multiplyValues(left, right interface{}) (interface{}, erro
 		return nil, fmt.Errorf("cannot multiply %T and %T", left, right)
 	}
 
-	if li, ok := left.(int64); ok {
-		if ri, ok := right.(int64); ok {
+	if li, ok := left.(int); ok {
+		if ri, ok := right.(int); ok {
 			return li * ri, nil
 		}
 	}
@@ -604,8 +664,8 @@ func (i *Interpreter) divideValues(left, right interface{}) (interface{}, error)
 		return nil, fmt.Errorf("division by zero")
 	}
 
-	if li, ok := left.(int64); ok {
-		if ri, ok := right.(int64); ok {
+	if li, ok := left.(int); ok {
+		if ri, ok := right.(int); ok {
 			return li / ri, nil
 		}
 	}
@@ -616,8 +676,8 @@ func (i *Interpreter) divideValues(left, right interface{}) (interface{}, error)
 func (i *Interpreter) equalValues(left, right interface{}) bool {
 	// Type-aware comparison
 	switch lv := left.(type) {
-	case int64:
-		if rv, ok := right.(int64); ok {
+	case int:
+		if rv, ok := right.(int); ok {
 			return lv == rv
 		}
 		if rv, ok := right.(float64); ok {
@@ -627,7 +687,7 @@ func (i *Interpreter) equalValues(left, right interface{}) bool {
 		if rv, ok := right.(float64); ok {
 			return lv == rv
 		}
-		if rv, ok := right.(int64); ok {
+		if rv, ok := right.(int); ok {
 			return lv == float64(rv)
 		}
 	case string:
@@ -678,7 +738,7 @@ func (i *Interpreter) isTruthy(val interface{}) bool {
 		return false
 	case bool:
 		return v
-	case int64:
+	case int:
 		return v != 0
 	case float64:
 		return v != 0
@@ -691,7 +751,7 @@ func (i *Interpreter) isTruthy(val interface{}) bool {
 
 func (i *Interpreter) toFloat64(val interface{}) (float64, bool) {
 	switch v := val.(type) {
-	case int64:
+	case int:
 		return float64(v), true
 	case float64:
 		return v, true
@@ -700,12 +760,12 @@ func (i *Interpreter) toFloat64(val interface{}) (float64, bool) {
 	}
 }
 
-func (i *Interpreter) toInt64(val interface{}) (int64, bool) {
+func (i *Interpreter) toInt(val interface{}) (int, bool) {
 	switch v := val.(type) {
-	case int64:
+	case int:
 		return v, true
 	case float64:
-		return int64(v), true
+		return int(v), true
 	default:
 		return 0, false
 	}
@@ -715,7 +775,7 @@ func (i *Interpreter) toString(val interface{}) string {
 	switch v := val.(type) {
 	case string:
 		return v
-	case int64:
+	case int:
 		return fmt.Sprintf("%d", v)
 	case float64:
 		return fmt.Sprintf("%g", v)
