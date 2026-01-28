@@ -2,24 +2,26 @@ package basic
 
 import (
 	"testing"
+
+	"github.com/mechanical-lich/mechanical-basic/internal/basic"
 )
 
 func TestTokenizeBasicAssignment(t *testing.T) {
 	input := "LET x = 5"
-	tokens, err := Tokenize(input)
+	tokens, err := basic.Tokenize(input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
 	expected := []struct {
-		typ   TokenType
+		typ   basic.TokenType
 		value string
 	}{
-		{TOKEN_LET, "LET"},
-		{TOKEN_IDENTIFIER, "x"},
-		{TOKEN_EQ, "="},
-		{TOKEN_INT, "5"},
-		{TOKEN_EOF, ""},
+		{basic.TOKEN_LET, "LET"},
+		{basic.TOKEN_IDENTIFIER, "x"},
+		{basic.TOKEN_EQ, "="},
+		{basic.TOKEN_INT, "5"},
+		{basic.TOKEN_EOF, ""},
 	}
 
 	if len(tokens) != len(expected) {
@@ -38,19 +40,19 @@ func TestTokenizeBasicAssignment(t *testing.T) {
 
 func TestTokenizeNumbers(t *testing.T) {
 	input := "42 3.14 0.5"
-	tokens, err := Tokenize(input)
+	tokens, err := basic.Tokenize(input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
 	expected := []struct {
-		typ   TokenType
+		typ   basic.TokenType
 		value string
 	}{
-		{TOKEN_INT, "42"},
-		{TOKEN_FLOAT, "3.14"},
-		{TOKEN_FLOAT, "0.5"},
-		{TOKEN_EOF, ""},
+		{basic.TOKEN_INT, "42"},
+		{basic.TOKEN_FLOAT, "3.14"},
+		{basic.TOKEN_FLOAT, "0.5"},
+		{basic.TOKEN_EOF, ""},
 	}
 
 	if len(tokens) != len(expected) {
@@ -69,7 +71,7 @@ func TestTokenizeNumbers(t *testing.T) {
 
 func TestTokenizeString(t *testing.T) {
 	input := `"Hello World"`
-	tokens, err := Tokenize(input)
+	tokens, err := basic.Tokenize(input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -78,7 +80,7 @@ func TestTokenizeString(t *testing.T) {
 		t.Fatalf("expected 2 tokens, got %d", len(tokens))
 	}
 
-	if tokens[0].Type != TOKEN_STRING {
+	if tokens[0].Type != basic.TOKEN_STRING {
 		t.Errorf("expected STRING, got %s", tokens[0].Type)
 	}
 	if tokens[0].Value != "Hello World" {
@@ -88,7 +90,7 @@ func TestTokenizeString(t *testing.T) {
 
 func TestTokenizeStringWithEscapes(t *testing.T) {
 	input := `"He said \"Hello\""`
-	tokens, err := Tokenize(input)
+	tokens, err := basic.Tokenize(input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -104,16 +106,16 @@ func TestTokenizeStringWithEscapes(t *testing.T) {
 
 func TestTokenizeOperators(t *testing.T) {
 	input := "+ - * / = < > <= >= <> != += -= ++ --"
-	tokens, err := Tokenize(input)
+	tokens, err := basic.Tokenize(input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	expected := []TokenType{
-		TOKEN_PLUS, TOKEN_MINUS, TOKEN_STAR, TOKEN_SLASH, TOKEN_EQ,
-		TOKEN_LT, TOKEN_GT, TOKEN_LTE, TOKEN_GTE, TOKEN_NEQ, TOKEN_NEQ,
-		TOKEN_PLUS_EQ, TOKEN_MINUS_EQ, TOKEN_PLUS_PLUS, TOKEN_MINUS_MINUS,
-		TOKEN_EOF,
+	expected := []basic.TokenType{
+		basic.TOKEN_PLUS, basic.TOKEN_MINUS, basic.TOKEN_STAR, basic.TOKEN_SLASH, basic.TOKEN_EQ,
+		basic.TOKEN_LT, basic.TOKEN_GT, basic.TOKEN_LTE, basic.TOKEN_GTE, basic.TOKEN_NEQ, basic.TOKEN_NEQ,
+		basic.TOKEN_PLUS_EQ, basic.TOKEN_MINUS_EQ, basic.TOKEN_PLUS_PLUS, basic.TOKEN_MINUS_MINUS,
+		basic.TOKEN_EOF,
 	}
 
 	if len(tokens) != len(expected) {
@@ -129,17 +131,17 @@ func TestTokenizeOperators(t *testing.T) {
 
 func TestTokenizeKeywords(t *testing.T) {
 	input := "if then else elseif endif for to next break function endfunction return print and or not let true false"
-	tokens, err := Tokenize(input)
+	tokens, err := basic.Tokenize(input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	expected := []TokenType{
-		TOKEN_IF, TOKEN_THEN, TOKEN_ELSE, TOKEN_ELSEIF, TOKEN_ENDIF,
-		TOKEN_FOR, TOKEN_TO, TOKEN_NEXT, TOKEN_BREAK,
-		TOKEN_FUNCTION, TOKEN_ENDFUNCTION, TOKEN_RETURN, TOKEN_PRINT,
-		TOKEN_AND, TOKEN_OR, TOKEN_NOT, TOKEN_LET, TOKEN_TRUE, TOKEN_FALSE,
-		TOKEN_EOF,
+	expected := []basic.TokenType{
+		basic.TOKEN_IF, basic.TOKEN_THEN, basic.TOKEN_ELSE, basic.TOKEN_ELSEIF, basic.TOKEN_ENDIF,
+		basic.TOKEN_FOR, basic.TOKEN_TO, basic.TOKEN_NEXT, basic.TOKEN_BREAK,
+		basic.TOKEN_FUNCTION, basic.TOKEN_ENDFUNCTION, basic.TOKEN_RETURN, basic.TOKEN_PRINT,
+		basic.TOKEN_AND, basic.TOKEN_OR, basic.TOKEN_NOT, basic.TOKEN_LET, basic.TOKEN_TRUE, basic.TOKEN_FALSE,
+		basic.TOKEN_EOF,
 	}
 
 	if len(tokens) != len(expected) {
@@ -155,12 +157,12 @@ func TestTokenizeKeywords(t *testing.T) {
 
 func TestTokenizeKeywordsCaseInsensitive(t *testing.T) {
 	input := "IF Then ELSE"
-	tokens, err := Tokenize(input)
+	tokens, err := basic.Tokenize(input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	expected := []TokenType{TOKEN_IF, TOKEN_THEN, TOKEN_ELSE, TOKEN_EOF}
+	expected := []basic.TokenType{basic.TOKEN_IF, basic.TOKEN_THEN, basic.TOKEN_ELSE, basic.TOKEN_EOF}
 
 	for i, exp := range expected {
 		if tokens[i].Type != exp {
@@ -173,26 +175,26 @@ func TestTokenizeIfStatement(t *testing.T) {
 	input := `if x > 5 then
     print "big"
 endif`
-	tokens, err := Tokenize(input)
+	tokens, err := basic.Tokenize(input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
 	expected := []struct {
-		typ   TokenType
+		typ   basic.TokenType
 		value string
 	}{
-		{TOKEN_IF, "if"},
-		{TOKEN_IDENTIFIER, "x"},
-		{TOKEN_GT, ">"},
-		{TOKEN_INT, "5"},
-		{TOKEN_THEN, "then"},
-		{TOKEN_NEWLINE, "\\n"},
-		{TOKEN_PRINT, "print"},
-		{TOKEN_STRING, "big"},
-		{TOKEN_NEWLINE, "\\n"},
-		{TOKEN_ENDIF, "endif"},
-		{TOKEN_EOF, ""},
+		{basic.TOKEN_IF, "if"},
+		{basic.TOKEN_IDENTIFIER, "x"},
+		{basic.TOKEN_GT, ">"},
+		{basic.TOKEN_INT, "5"},
+		{basic.TOKEN_THEN, "then"},
+		{basic.TOKEN_NEWLINE, "\\n"},
+		{basic.TOKEN_PRINT, "print"},
+		{basic.TOKEN_STRING, "big"},
+		{basic.TOKEN_NEWLINE, "\\n"},
+		{basic.TOKEN_ENDIF, "endif"},
+		{basic.TOKEN_EOF, ""},
 	}
 
 	if len(tokens) != len(expected) {
@@ -210,18 +212,18 @@ func TestTokenizeForLoop(t *testing.T) {
 	input := `for i = 1 to 10
     print i
 next i`
-	tokens, err := Tokenize(input)
+	tokens, err := basic.Tokenize(input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	expected := []TokenType{
-		TOKEN_FOR, TOKEN_IDENTIFIER, TOKEN_EQ, TOKEN_INT, TOKEN_TO, TOKEN_INT,
-		TOKEN_NEWLINE,
-		TOKEN_PRINT, TOKEN_IDENTIFIER,
-		TOKEN_NEWLINE,
-		TOKEN_NEXT, TOKEN_IDENTIFIER,
-		TOKEN_EOF,
+	expected := []basic.TokenType{
+		basic.TOKEN_FOR, basic.TOKEN_IDENTIFIER, basic.TOKEN_EQ, basic.TOKEN_INT, basic.TOKEN_TO, basic.TOKEN_INT,
+		basic.TOKEN_NEWLINE,
+		basic.TOKEN_PRINT, basic.TOKEN_IDENTIFIER,
+		basic.TOKEN_NEWLINE,
+		basic.TOKEN_NEXT, basic.TOKEN_IDENTIFIER,
+		basic.TOKEN_EOF,
 	}
 
 	if len(tokens) != len(expected) {
@@ -237,14 +239,14 @@ next i`
 
 func TestTokenizeFunctionCall(t *testing.T) {
 	input := "pow(2, 3)"
-	tokens, err := Tokenize(input)
+	tokens, err := basic.Tokenize(input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	expected := []TokenType{
-		TOKEN_IDENTIFIER, TOKEN_LPAREN, TOKEN_INT, TOKEN_COMMA, TOKEN_INT, TOKEN_RPAREN,
-		TOKEN_EOF,
+	expected := []basic.TokenType{
+		basic.TOKEN_IDENTIFIER, basic.TOKEN_LPAREN, basic.TOKEN_INT, basic.TOKEN_COMMA, basic.TOKEN_INT, basic.TOKEN_RPAREN,
+		basic.TOKEN_EOF,
 	}
 
 	if len(tokens) != len(expected) {
@@ -263,20 +265,20 @@ func TestTokenizeFunction(t *testing.T) {
     let z = x + y
     return z
 endfunction`
-	tokens, err := Tokenize(input)
+	tokens, err := basic.Tokenize(input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	expected := []TokenType{
-		TOKEN_FUNCTION, TOKEN_IDENTIFIER, TOKEN_LPAREN, TOKEN_IDENTIFIER, TOKEN_COMMA, TOKEN_IDENTIFIER, TOKEN_RPAREN, TOKEN_COLON,
-		TOKEN_NEWLINE,
-		TOKEN_LET, TOKEN_IDENTIFIER, TOKEN_EQ, TOKEN_IDENTIFIER, TOKEN_PLUS, TOKEN_IDENTIFIER,
-		TOKEN_NEWLINE,
-		TOKEN_RETURN, TOKEN_IDENTIFIER,
-		TOKEN_NEWLINE,
-		TOKEN_ENDFUNCTION,
-		TOKEN_EOF,
+	expected := []basic.TokenType{
+		basic.TOKEN_FUNCTION, basic.TOKEN_IDENTIFIER, basic.TOKEN_LPAREN, basic.TOKEN_IDENTIFIER, basic.TOKEN_COMMA, basic.TOKEN_IDENTIFIER, basic.TOKEN_RPAREN, basic.TOKEN_COLON,
+		basic.TOKEN_NEWLINE,
+		basic.TOKEN_LET, basic.TOKEN_IDENTIFIER, basic.TOKEN_EQ, basic.TOKEN_IDENTIFIER, basic.TOKEN_PLUS, basic.TOKEN_IDENTIFIER,
+		basic.TOKEN_NEWLINE,
+		basic.TOKEN_RETURN, basic.TOKEN_IDENTIFIER,
+		basic.TOKEN_NEWLINE,
+		basic.TOKEN_ENDFUNCTION,
+		basic.TOKEN_EOF,
 	}
 
 	if len(tokens) != len(expected) {
@@ -293,17 +295,17 @@ endfunction`
 func TestTokenizeCommentSkipped(t *testing.T) {
 	input := `x = 5 # this is a comment
 y = 10`
-	tokens, err := Tokenize(input)
+	tokens, err := basic.Tokenize(input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
 	// Comments should be skipped
-	expected := []TokenType{
-		TOKEN_IDENTIFIER, TOKEN_EQ, TOKEN_INT,
-		TOKEN_NEWLINE,
-		TOKEN_IDENTIFIER, TOKEN_EQ, TOKEN_INT,
-		TOKEN_EOF,
+	expected := []basic.TokenType{
+		basic.TOKEN_IDENTIFIER, basic.TOKEN_EQ, basic.TOKEN_INT,
+		basic.TOKEN_NEWLINE,
+		basic.TOKEN_IDENTIFIER, basic.TOKEN_EQ, basic.TOKEN_INT,
+		basic.TOKEN_EOF,
 	}
 
 	if len(tokens) != len(expected) {
@@ -321,7 +323,7 @@ func TestTokenizeLineNumbers(t *testing.T) {
 	input := `x = 1
 y = 2
 z = 3`
-	tokens, err := Tokenize(input)
+	tokens, err := basic.Tokenize(input)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -338,7 +340,7 @@ z = 3`
 
 func TestTokenizeUnterminatedString(t *testing.T) {
 	input := `"Hello`
-	_, err := Tokenize(input)
+	_, err := basic.Tokenize(input)
 	if err == nil {
 		t.Error("expected error for unterminated string")
 	}
@@ -346,7 +348,7 @@ func TestTokenizeUnterminatedString(t *testing.T) {
 
 func TestTokenizeUnexpectedCharacter(t *testing.T) {
 	input := "x = @"
-	_, err := Tokenize(input)
+	_, err := basic.Tokenize(input)
 	if err == nil {
 		t.Error("expected error for unexpected character")
 	}

@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/mechanical-lich/mechanical-basic/internal/basic"
 )
 
-func newTestInterpreter() (*Interpreter, *[]interface{}) {
-	interp := NewInterpreter()
+func newTestInterpreter() (*basic.Interpreter, *[]interface{}) {
+	interp := basic.NewInterpreter()
 	var output []interface{}
 	interp.SetPrintFunc(func(v interface{}) {
 		output = append(output, v)
@@ -509,7 +511,7 @@ func TestInterpretASTCaching(t *testing.T) {
 }
 
 func TestInterpretValidate(t *testing.T) {
-	interp := NewInterpreter()
+	interp := basic.NewInterpreter()
 
 	// Valid code
 	err := interp.Validate(`let x = 5`)
@@ -706,7 +708,7 @@ endfunction
 }
 
 func TestTopLevelVariablesPersist(t *testing.T) {
-	interp := NewInterpreter()
+	interp := basic.NewInterpreter()
 
 	code := `
 counter = 0
@@ -754,7 +756,7 @@ endfunction
 }
 
 func TestCallUndefinedFunction(t *testing.T) {
-	interp := NewInterpreter()
+	interp := basic.NewInterpreter()
 
 	err := interp.Load(`
 function exists():
@@ -772,7 +774,7 @@ endfunction
 }
 
 func TestCallWrongArgumentCount(t *testing.T) {
-	interp := NewInterpreter()
+	interp := basic.NewInterpreter()
 
 	err := interp.Load(`
 function add(a, b):
@@ -790,7 +792,7 @@ endfunction
 }
 
 func TestHasFunction(t *testing.T) {
-	interp := NewInterpreter()
+	interp := basic.NewInterpreter()
 
 	err := interp.Load(`
 function init():
@@ -817,7 +819,7 @@ endfunction
 }
 
 func TestCallWithExternalFunctions(t *testing.T) {
-	interp := NewInterpreter()
+	interp := basic.NewInterpreter()
 
 	var velocityX, velocityY float64
 	interp.RegisterFunction("setVelocity", func(args ...interface{}) (interface{}, error) {

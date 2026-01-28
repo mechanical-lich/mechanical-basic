@@ -2,6 +2,8 @@ package basic
 
 import (
 	"testing"
+
+	"github.com/mechanical-lich/mechanical-basic/internal/basic"
 )
 
 var benchSmallProgram = `
@@ -39,7 +41,7 @@ NEXT
 func BenchmarkInterpret_ParseAndExec(b *testing.B) {
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
-		interp := NewInterpreter()
+		interp := basic.NewInterpreter()
 		if err := interp.Interpret(benchSmallProgram); err != nil {
 			b.Fatalf("interpret error: %v", err)
 		}
@@ -48,7 +50,7 @@ func BenchmarkInterpret_ParseAndExec(b *testing.B) {
 
 func BenchmarkInterpret_Cached(b *testing.B) {
 	b.ReportAllocs()
-	interp := NewInterpreter()
+	interp := basic.NewInterpreter()
 	// warm cache
 	if err := interp.Interpret(benchSmallProgram); err != nil {
 		b.Fatalf("warm cache error: %v", err)
@@ -63,7 +65,7 @@ func BenchmarkInterpret_Cached(b *testing.B) {
 
 func BenchmarkInterpret_Loop(b *testing.B) {
 	b.ReportAllocs()
-	interp := NewInterpreter()
+	interp := basic.NewInterpreter()
 	for n := 0; n < b.N; n++ {
 		if err := interp.Interpret(benchLoopProgram); err != nil {
 			b.Fatalf("interpret error: %v", err)
@@ -73,7 +75,7 @@ func BenchmarkInterpret_Loop(b *testing.B) {
 
 func BenchmarkFunctionCalls(b *testing.B) {
 	b.ReportAllocs()
-	interp := NewInterpreter()
+	interp := basic.NewInterpreter()
 	for n := 0; n < b.N; n++ {
 		if err := interp.Interpret(benchFuncProgram); err != nil {
 			b.Fatalf("interpret error: %v", err)
@@ -83,7 +85,7 @@ func BenchmarkFunctionCalls(b *testing.B) {
 
 func BenchmarkExternalCalls(b *testing.B) {
 	b.ReportAllocs()
-	interp := NewInterpreter()
+	interp := basic.NewInterpreter()
 	interp.RegisterFunction("noop", func(args ...interface{}) (interface{}, error) {
 		return nil, nil
 	})

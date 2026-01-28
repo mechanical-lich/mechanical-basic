@@ -2,14 +2,16 @@ package basic
 
 import (
 	"testing"
+
+	"github.com/mechanical-lich/mechanical-basic/internal/basic"
 )
 
-func parseCode(t *testing.T, code string) *Program {
-	tokens, err := Tokenize(code)
+func parseCode(t *testing.T, code string) *basic.Program {
+	tokens, err := basic.Tokenize(code)
 	if err != nil {
 		t.Fatalf("tokenize error: %v", err)
 	}
-	prog, err := Parse(tokens)
+	prog, err := basic.Parse(tokens)
 	if err != nil {
 		t.Fatalf("parse error: %v", err)
 	}
@@ -23,7 +25,7 @@ func TestParseLetStatement(t *testing.T) {
 		t.Fatalf("expected 1 statement, got %d", len(prog.Statements))
 	}
 
-	let, ok := prog.Statements[0].(*LetStatement)
+	let, ok := prog.Statements[0].(*basic.LetStatement)
 	if !ok {
 		t.Fatalf("expected LetStatement, got %T", prog.Statements[0])
 	}
@@ -32,7 +34,7 @@ func TestParseLetStatement(t *testing.T) {
 		t.Errorf("expected name 'x', got %q", let.Name)
 	}
 
-	intLit, ok := let.Value.(*IntLiteral)
+	intLit, ok := let.Value.(*basic.IntLiteral)
 	if !ok {
 		t.Fatalf("expected IntLiteral, got %T", let.Value)
 	}
@@ -44,27 +46,27 @@ func TestParseLetStatement(t *testing.T) {
 func TestParseLetWithExpression(t *testing.T) {
 	prog := parseCode(t, "LET x = 2 + 3 * 4")
 
-	let := prog.Statements[0].(*LetStatement)
+	let := prog.Statements[0].(*basic.LetStatement)
 
 	// Should be 2 + (3 * 4) due to precedence
-	binExpr, ok := let.Value.(*BinaryExpr)
+	binExpr, ok := let.Value.(*basic.BinaryExpr)
 	if !ok {
 		t.Fatalf("expected BinaryExpr, got %T", let.Value)
 	}
 
-	if binExpr.Operator != TOKEN_PLUS {
+	if binExpr.Operator != basic.TOKEN_PLUS {
 		t.Errorf("expected PLUS at top level, got %s", binExpr.Operator)
 	}
 
 	// Left should be 2
-	leftInt := binExpr.Left.(*IntLiteral)
+	leftInt := binExpr.Left.(*basic.IntLiteral)
 	if leftInt.Value != 2 {
 		t.Errorf("expected left 2, got %d", leftInt.Value)
 	}
 
 	// Right should be 3 * 4
-	rightBin := binExpr.Right.(*BinaryExpr)
-	if rightBin.Operator != TOKEN_STAR {
+	rightBin := binExpr.Right.(*basic.BinaryExpr)
+	if rightBin.Operator != basic.TOKEN_STAR {
 		t.Errorf("expected STAR on right, got %s", rightBin.Operator)
 	}
 }
@@ -72,7 +74,7 @@ func TestParseLetWithExpression(t *testing.T) {
 func TestParseAssignment(t *testing.T) {
 	prog := parseCode(t, "x = 10")
 
-	assign, ok := prog.Statements[0].(*AssignStatement)
+	assign, ok := prog.Statements[0].(*basic.AssignStatement)
 	if !ok {
 		t.Fatalf("expected AssignStatement, got %T", prog.Statements[0])
 	}
@@ -80,7 +82,7 @@ func TestParseAssignment(t *testing.T) {
 	if assign.Name != "x" {
 		t.Errorf("expected name 'x', got %q", assign.Name)
 	}
-	if assign.Operator != TOKEN_EQ {
+	if assign.Operator != basic.TOKEN_EQ {
 		t.Errorf("expected TOKEN_EQ, got %s", assign.Operator)
 	}
 }
@@ -88,15 +90,15 @@ func TestParseAssignment(t *testing.T) {
 func TestParseCompoundAssignment(t *testing.T) {
 	tests := []struct {
 		code string
-		op   TokenType
+		op   basic.TokenType
 	}{
-		{"x += 1", TOKEN_PLUS_EQ},
-		{"x -= 1", TOKEN_MINUS_EQ},
+		{"x += 1", basic.TOKEN_PLUS_EQ},
+		{"x -= 1", basic.TOKEN_MINUS_EQ},
 	}
 
 	for _, tt := range tests {
 		prog := parseCode(t, tt.code)
-		assign := prog.Statements[0].(*AssignStatement)
+		assign := prog.Statements[0].(*basic.AssignStatement)
 		if assign.Operator != tt.op {
 			t.Errorf("%s: expected %s, got %s", tt.code, tt.op, assign.Operator)
 		}
@@ -105,8 +107,8 @@ func TestParseCompoundAssignment(t *testing.T) {
 
 func TestParseIncDec(t *testing.T) {
 	prog := parseCode(t, "x++")
-	assign := prog.Statements[0].(*AssignStatement)
-	if assign.Operator != TOKEN_PLUS_PLUS {
+	assign := prog.Statements[0].(*basic.AssignStatement)
+	if assign.Operator != basic.TOKEN_PLUS_PLUS {
 		t.Errorf("expected TOKEN_PLUS_PLUS, got %s", assign.Operator)
 	}
 	if assign.Value != nil {
@@ -114,8 +116,8 @@ func TestParseIncDec(t *testing.T) {
 	}
 
 	prog = parseCode(t, "x--")
-	assign = prog.Statements[0].(*AssignStatement)
-	if assign.Operator != TOKEN_MINUS_MINUS {
+	assign = prog.Statements[0].(*basic.AssignStatement)
+	if assign.Operator != basic.TOKEN_MINUS_MINUS {
 		t.Errorf("expected TOKEN_MINUS_MINUS, got %s", assign.Operator)
 	}
 }
@@ -123,12 +125,12 @@ func TestParseIncDec(t *testing.T) {
 func TestParsePrint(t *testing.T) {
 	prog := parseCode(t, `print "Hello"`)
 
-	print, ok := prog.Statements[0].(*PrintStatement)
+	print, ok := prog.Statements[0].(*basic.PrintStatement)
 	if !ok {
 		t.Fatalf("expected PrintStatement, got %T", prog.Statements[0])
 	}
 
-	str, ok := print.Value.(*StringLiteral)
+	str, ok := print.Value.(*basic.StringLiteral)
 	if !ok {
 		t.Fatalf("expected StringLiteral, got %T", print.Value)
 	}
@@ -143,17 +145,17 @@ func TestParseIfThenEndif(t *testing.T) {
 endif`
 	prog := parseCode(t, code)
 
-	ifStmt, ok := prog.Statements[0].(*IfStatement)
+	ifStmt, ok := prog.Statements[0].(*basic.IfStatement)
 	if !ok {
 		t.Fatalf("expected IfStatement, got %T", prog.Statements[0])
 	}
 
 	// Check condition
-	binExpr, ok := ifStmt.Condition.(*BinaryExpr)
+	binExpr, ok := ifStmt.Condition.(*basic.BinaryExpr)
 	if !ok {
 		t.Fatalf("expected BinaryExpr condition, got %T", ifStmt.Condition)
 	}
-	if binExpr.Operator != TOKEN_GT {
+	if binExpr.Operator != basic.TOKEN_GT {
 		t.Errorf("expected GT, got %s", binExpr.Operator)
 	}
 
@@ -176,7 +178,7 @@ else
 endif`
 	prog := parseCode(t, code)
 
-	ifStmt := prog.Statements[0].(*IfStatement)
+	ifStmt := prog.Statements[0].(*basic.IfStatement)
 
 	if len(ifStmt.ThenBlock) != 1 {
 		t.Errorf("expected 1 statement in ThenBlock, got %d", len(ifStmt.ThenBlock))
@@ -196,15 +198,15 @@ else
 endif`
 	prog := parseCode(t, code)
 
-	ifStmt := prog.Statements[0].(*IfStatement)
+	ifStmt := prog.Statements[0].(*basic.IfStatement)
 
 	if len(ifStmt.ElseIfClauses) != 1 {
 		t.Errorf("expected 1 ElseIfClause, got %d", len(ifStmt.ElseIfClauses))
 	}
 
 	elseIf := ifStmt.ElseIfClauses[0]
-	binExpr := elseIf.Condition.(*BinaryExpr)
-	if binExpr.Operator != TOKEN_LT {
+	binExpr := elseIf.Condition.(*basic.BinaryExpr)
+	if binExpr.Operator != basic.TOKEN_LT {
 		t.Errorf("expected LT in elseif, got %s", binExpr.Operator)
 	}
 }
@@ -215,7 +217,7 @@ func TestParseForLoop(t *testing.T) {
 next i`
 	prog := parseCode(t, code)
 
-	forStmt, ok := prog.Statements[0].(*ForStatement)
+	forStmt, ok := prog.Statements[0].(*basic.ForStatement)
 	if !ok {
 		t.Fatalf("expected ForStatement, got %T", prog.Statements[0])
 	}
@@ -224,12 +226,12 @@ next i`
 		t.Errorf("expected variable 'i', got %q", forStmt.Variable)
 	}
 
-	start := forStmt.Start.(*IntLiteral)
+	start := forStmt.Start.(*basic.IntLiteral)
 	if start.Value != 1 {
 		t.Errorf("expected start 1, got %d", start.Value)
 	}
 
-	end := forStmt.End.(*IntLiteral)
+	end := forStmt.End.(*basic.IntLiteral)
 	if end.Value != 10 {
 		t.Errorf("expected end 10, got %d", end.Value)
 	}
@@ -247,13 +249,13 @@ func TestParseForWithBreak(t *testing.T) {
 next i`
 	prog := parseCode(t, code)
 
-	forStmt := prog.Statements[0].(*ForStatement)
+	forStmt := prog.Statements[0].(*basic.ForStatement)
 	if len(forStmt.Body) != 1 {
 		t.Fatalf("expected 1 statement in for body, got %d", len(forStmt.Body))
 	}
 
-	ifStmt := forStmt.Body[0].(*IfStatement)
-	breakStmt, ok := ifStmt.ThenBlock[0].(*BreakStatement)
+	ifStmt := forStmt.Body[0].(*basic.IfStatement)
+	breakStmt, ok := ifStmt.ThenBlock[0].(*basic.BreakStatement)
 	if !ok {
 		t.Fatalf("expected BreakStatement, got %T", ifStmt.ThenBlock[0])
 	}
@@ -267,7 +269,7 @@ func TestParseFunction(t *testing.T) {
 endfunction`
 	prog := parseCode(t, code)
 
-	fn, ok := prog.Statements[0].(*FunctionStatement)
+	fn, ok := prog.Statements[0].(*basic.FunctionStatement)
 	if !ok {
 		t.Fatalf("expected FunctionStatement, got %T", prog.Statements[0])
 	}
@@ -285,12 +287,12 @@ endfunction`
 	}
 
 	// Check return
-	ret, ok := fn.Body[1].(*ReturnStatement)
+	ret, ok := fn.Body[1].(*basic.ReturnStatement)
 	if !ok {
 		t.Fatalf("expected ReturnStatement, got %T", fn.Body[1])
 	}
 
-	ident := ret.Value.(*Identifier)
+	ident := ret.Value.(*basic.Identifier)
 	if ident.Name != "z" {
 		t.Errorf("expected return 'z', got %q", ident.Name)
 	}
@@ -302,7 +304,7 @@ func TestParseFunctionNoParams(t *testing.T) {
 endfunction`
 	prog := parseCode(t, code)
 
-	fn := prog.Statements[0].(*FunctionStatement)
+	fn := prog.Statements[0].(*basic.FunctionStatement)
 	if len(fn.Params) != 0 {
 		t.Errorf("expected 0 params, got %d", len(fn.Params))
 	}
@@ -312,8 +314,8 @@ func TestParseFunctionCall(t *testing.T) {
 	code := `let x = add(1, 2)`
 	prog := parseCode(t, code)
 
-	let := prog.Statements[0].(*LetStatement)
-	call, ok := let.Value.(*CallExpr)
+	let := prog.Statements[0].(*basic.LetStatement)
+	call, ok := let.Value.(*basic.CallExpr)
 	if !ok {
 		t.Fatalf("expected CallExpr, got %T", let.Value)
 	}
@@ -330,8 +332,8 @@ func TestParseFunctionCallNoArgs(t *testing.T) {
 	code := `let x = getX()`
 	prog := parseCode(t, code)
 
-	let := prog.Statements[0].(*LetStatement)
-	call := let.Value.(*CallExpr)
+	let := prog.Statements[0].(*basic.LetStatement)
+	call := let.Value.(*basic.CallExpr)
 
 	if call.Name != "getX" {
 		t.Errorf("expected name 'getX', got %q", call.Name)
@@ -345,12 +347,12 @@ func TestParseFunctionCallAsStatement(t *testing.T) {
 	code := `doSomething(1, 2)`
 	prog := parseCode(t, code)
 
-	exprStmt, ok := prog.Statements[0].(*ExpressionStatement)
+	exprStmt, ok := prog.Statements[0].(*basic.ExpressionStatement)
 	if !ok {
 		t.Fatalf("expected ExpressionStatement, got %T", prog.Statements[0])
 	}
 
-	call := exprStmt.Expr.(*CallExpr)
+	call := exprStmt.Expr.(*basic.CallExpr)
 	if call.Name != "doSomething" {
 		t.Errorf("expected name 'doSomething', got %q", call.Name)
 	}
@@ -359,17 +361,17 @@ func TestParseFunctionCallAsStatement(t *testing.T) {
 func TestParseUnaryMinus(t *testing.T) {
 	prog := parseCode(t, "let x = -5")
 
-	let := prog.Statements[0].(*LetStatement)
-	unary, ok := let.Value.(*UnaryExpr)
+	let := prog.Statements[0].(*basic.LetStatement)
+	unary, ok := let.Value.(*basic.UnaryExpr)
 	if !ok {
 		t.Fatalf("expected UnaryExpr, got %T", let.Value)
 	}
 
-	if unary.Operator != TOKEN_MINUS {
+	if unary.Operator != basic.TOKEN_MINUS {
 		t.Errorf("expected MINUS, got %s", unary.Operator)
 	}
 
-	intLit := unary.Operand.(*IntLiteral)
+	intLit := unary.Operand.(*basic.IntLiteral)
 	if intLit.Value != 5 {
 		t.Errorf("expected 5, got %d", intLit.Value)
 	}
@@ -378,14 +380,14 @@ func TestParseUnaryMinus(t *testing.T) {
 func TestParseUnaryNot(t *testing.T) {
 	prog := parseCode(t, "let x = not true")
 
-	let := prog.Statements[0].(*LetStatement)
-	unary := let.Value.(*UnaryExpr)
+	let := prog.Statements[0].(*basic.LetStatement)
+	unary := let.Value.(*basic.UnaryExpr)
 
-	if unary.Operator != TOKEN_NOT {
+	if unary.Operator != basic.TOKEN_NOT {
 		t.Errorf("expected NOT, got %s", unary.Operator)
 	}
 
-	boolLit := unary.Operand.(*BoolLiteral)
+	boolLit := unary.Operand.(*basic.BoolLiteral)
 	if !boolLit.Value {
 		t.Error("expected true")
 	}
@@ -394,20 +396,20 @@ func TestParseUnaryNot(t *testing.T) {
 func TestParseLogicalOperators(t *testing.T) {
 	prog := parseCode(t, "let x = a and b or c")
 
-	let := prog.Statements[0].(*LetStatement)
+	let := prog.Statements[0].(*basic.LetStatement)
 
 	// OR has lower precedence, so it should be at the top
-	orExpr, ok := let.Value.(*BinaryExpr)
+	orExpr, ok := let.Value.(*basic.BinaryExpr)
 	if !ok {
 		t.Fatalf("expected BinaryExpr, got %T", let.Value)
 	}
-	if orExpr.Operator != TOKEN_OR {
+	if orExpr.Operator != basic.TOKEN_OR {
 		t.Errorf("expected OR at top, got %s", orExpr.Operator)
 	}
 
 	// Left should be (a AND b)
-	andExpr := orExpr.Left.(*BinaryExpr)
-	if andExpr.Operator != TOKEN_AND {
+	andExpr := orExpr.Left.(*basic.BinaryExpr)
+	if andExpr.Operator != basic.TOKEN_AND {
 		t.Errorf("expected AND on left, got %s", andExpr.Operator)
 	}
 }
@@ -415,21 +417,21 @@ func TestParseLogicalOperators(t *testing.T) {
 func TestParseComparisonOperators(t *testing.T) {
 	tests := []struct {
 		code string
-		op   TokenType
+		op   basic.TokenType
 	}{
-		{"x < 5", TOKEN_LT},
-		{"x > 5", TOKEN_GT},
-		{"x <= 5", TOKEN_LTE},
-		{"x >= 5", TOKEN_GTE},
-		{"x = 5", TOKEN_EQ},
-		{"x <> 5", TOKEN_NEQ},
-		{"x != 5", TOKEN_NEQ},
+		{"x < 5", basic.TOKEN_LT},
+		{"x > 5", basic.TOKEN_GT},
+		{"x <= 5", basic.TOKEN_LTE},
+		{"x >= 5", basic.TOKEN_GTE},
+		{"x = 5", basic.TOKEN_EQ},
+		{"x <> 5", basic.TOKEN_NEQ},
+		{"x != 5", basic.TOKEN_NEQ},
 	}
 
 	for _, tt := range tests {
 		prog := parseCode(t, "let y = "+tt.code)
-		let := prog.Statements[0].(*LetStatement)
-		binExpr := let.Value.(*BinaryExpr)
+		let := prog.Statements[0].(*basic.LetStatement)
+		binExpr := let.Value.(*basic.BinaryExpr)
 		if binExpr.Operator != tt.op {
 			t.Errorf("%s: expected %s, got %s", tt.code, tt.op, binExpr.Operator)
 		}
@@ -439,17 +441,17 @@ func TestParseComparisonOperators(t *testing.T) {
 func TestParseParentheses(t *testing.T) {
 	prog := parseCode(t, "let x = (2 + 3) * 4")
 
-	let := prog.Statements[0].(*LetStatement)
+	let := prog.Statements[0].(*basic.LetStatement)
 
 	// Top should be multiplication
-	mulExpr := let.Value.(*BinaryExpr)
-	if mulExpr.Operator != TOKEN_STAR {
+	mulExpr := let.Value.(*basic.BinaryExpr)
+	if mulExpr.Operator != basic.TOKEN_STAR {
 		t.Errorf("expected STAR at top, got %s", mulExpr.Operator)
 	}
 
 	// Left should be addition (from parens)
-	addExpr := mulExpr.Left.(*BinaryExpr)
-	if addExpr.Operator != TOKEN_PLUS {
+	addExpr := mulExpr.Left.(*basic.BinaryExpr)
+	if addExpr.Operator != basic.TOKEN_PLUS {
 		t.Errorf("expected PLUS on left, got %s", addExpr.Operator)
 	}
 }
@@ -468,26 +470,26 @@ func TestParseLiterals(t *testing.T) {
 
 	for _, tt := range tests {
 		prog := parseCode(t, tt.code)
-		let := prog.Statements[0].(*LetStatement)
+		let := prog.Statements[0].(*basic.LetStatement)
 
 		switch expected := tt.expected.(type) {
 		case int:
-			lit := let.Value.(*IntLiteral)
+			lit := let.Value.(*basic.IntLiteral)
 			if lit.Value != expected {
 				t.Errorf("%s: expected %d, got %d", tt.code, expected, lit.Value)
 			}
 		case float64:
-			lit := let.Value.(*FloatLiteral)
+			lit := let.Value.(*basic.FloatLiteral)
 			if lit.Value != expected {
 				t.Errorf("%s: expected %f, got %f", tt.code, expected, lit.Value)
 			}
 		case string:
-			lit := let.Value.(*StringLiteral)
+			lit := let.Value.(*basic.StringLiteral)
 			if lit.Value != expected {
 				t.Errorf("%s: expected %q, got %q", tt.code, expected, lit.Value)
 			}
 		case bool:
-			lit := let.Value.(*BoolLiteral)
+			lit := let.Value.(*basic.BoolLiteral)
 			if lit.Value != expected {
 				t.Errorf("%s: expected %v, got %v", tt.code, expected, lit.Value)
 			}
@@ -518,11 +520,11 @@ func TestParseError(t *testing.T) {
 	}
 
 	for _, code := range tests {
-		tokens, err := Tokenize(code)
+		tokens, err := basic.Tokenize(code)
 		if err != nil {
 			continue // tokenize error is fine
 		}
-		_, err = Parse(tokens)
+		_, err = basic.Parse(tokens)
 		if err == nil {
 			t.Errorf("expected parse error for: %s", code)
 		}
